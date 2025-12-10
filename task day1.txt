@@ -1,4 +1,5 @@
-Database Course Documentation Report
+**Database Course Documentation Report**
+
 1. Comparison: Flat File Systems vs Relational Databases
 
 | Feature             | **Flat File Systems**                                                      | **Relational Databases (RDBMS)**                                        |

@@ -1,0 +1,49 @@
+CREATE DATABASE companyDB;
+use companyDB;
+
+CREATE TABLE Department (
+    DNUM INT PRIMARY KEY,
+    DName VARCHAR(50) NOT NULL,
+    SSN CHAR(50),
+    Hiring_Date DATE
+);
+
+CREATE TABLE Employee (
+ SSN INT PRIMARY KEY,
+ Fname VARCHAR(30),
+ Lname VARCHAR(30),
+ BirthDate DATE,
+ Gender CHAR(1),
+ DNO INT,
+ FOREIGN KEY (DNO) REFERENCES Department(DNUM)
+);
+
+ALTER TABLE Department
+ADD CONSTRAINT FK_Department_Manager
+FOREIGN KEY (SSN) REFERENCES Employee(SSN);
+
+CREATE TABLE Project (
+    PName VARCHAR(50),
+    PNumber INT PRIMARY KEY,
+    PLocation VARCHAR(50),
+    DNum INT,
+    FOREIGN KEY (DNum) REFERENCES Department(DNUM)
+);
+
+CREATE TABLE Works_On (
+    SSN CHAR(9),
+    PNumber INT,
+    Hours DECIMAL(4,1),
+    PRIMARY KEY (SSN, PNumber),
+    FOREIGN KEY (SSN) REFERENCES Employee(SSN),
+    FOREIGN KEY (PNumber) REFERENCES Project(PNumber)
+);
+CREATE TABLE Dependent (
+    Dependent_Name VARCHAR(50),
+    SSN CHAR(9),
+    Gender CHAR(1),
+    BirthDate DATE,
+    Relationship VARCHAR(25),
+    PRIMARY KEY (Dependent_Name, SSN),
+    FOREIGN KEY (SSN) REFERENCES Employee(SSN)
+);
