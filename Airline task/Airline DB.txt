@@ -1,0 +1,218 @@
+CREATE DATABASE AirlineDB;
+USE AirlineDB;
+
+CREATE TABLE Airport (
+    airport_code CHAR(3) PRIMARY KEY,
+    name NVARCHAR(100) NOT NULL,
+    city NVARCHAR(50) NOT NULL,
+    state NVARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Airplane_Type (
+    type_name VARCHAR(50) PRIMARY KEY,
+    company VARCHAR(50),
+    max_seats INT NOT NULL
+);
+
+CREATE TABLE Airplane (
+    airplane_id INT PRIMARY KEY,
+    type_name VARCHAR(50) NOT NULL,
+    total_seats INT NOT NULL,
+    airport_code CHAR(3) NOT NULL,
+    CONSTRAINT FK_Airplane_Type FOREIGN KEY (type_name) REFERENCES Airplane_Type(type_name),
+    CONSTRAINT FK_Airplane_Airport FOREIGN KEY (airport_code) REFERENCES Airport(airport_code)
+);
+
+CREATE TABLE Flight_Leg (
+    leg_no INT PRIMARY KEY,
+    dep_airport_code CHAR(3) NOT NULL,
+    arr_airport_code CHAR(3) NOT NULL,
+    scheduled_dep_time TIME NOT NULL,
+    scheduled_arr_time TIME NOT NULL,
+    CONSTRAINT FK_Leg_DepAirport FOREIGN KEY (dep_airport_code) REFERENCES Airport(airport_code),
+    CONSTRAINT FK_Leg_ArrAirport FOREIGN KEY (arr_airport_code) REFERENCES Airport(airport_code)
+);
+
+CREATE TABLE Flight (
+    flight_no VARCHAR(10) PRIMARY KEY,
+    airline VARCHAR(50) NOT NULL,
+    weekdays VARCHAR(20),
+    restrictions VARCHAR(100)
+);
+
+CREATE TABLE Flight_Leg_Assignment (
+    flight_no VARCHAR(10) NOT NULL,
+    leg_no INT NOT NULL,
+    leg_order INT NOT NULL,
+    CONSTRAINT PK_FlightLeg PRIMARY KEY (flight_no, leg_no),
+    CONSTRAINT FK_FLA_Flight FOREIGN KEY (flight_no) REFERENCES Flight(flight_no),
+    CONSTRAINT FK_FLA_Leg FOREIGN KEY (leg_no) REFERENCES Flight_Leg(leg_no)
+);
+
+CREATE TABLE Leg_Instance (
+    leg_no INT NOT NULL,
+    flight_date DATE NOT NULL,
+    arrival_time TIME,
+    departure_time TIME,
+    available_seats INT NOT NULL,
+    CONSTRAINT PK_LegInstance PRIMARY KEY (leg_no, flight_date),
+    CONSTRAINT FK_LegInstance_Leg FOREIGN KEY (leg_no) REFERENCES Flight_Leg(leg_no)
+);
+
+CREATE TABLE Fare (
+    fare_code VARCHAR(10) PRIMARY KEY,
+    amount DECIMAL(10,2) NOT NULL,
+    leg_no INT NOT NULL,
+    CONSTRAINT FK_Fare_Leg FOREIGN KEY (leg_no) REFERENCES Flight_Leg(leg_no)
+);
+
+CREATE TABLE Reservation (
+    reservation_id INT IDENTITY PRIMARY KEY,
+    passenger_name VARCHAR(100) NOT NULL,
+    phone_no VARCHAR(20),
+    leg_no INT NOT NULL,
+    flight_date DATE NOT NULL,
+    CONSTRAINT FK_Reservation_LegInstance FOREIGN KEY (leg_no, flight_date) REFERENCES Leg_Instance(leg_no, flight_date)
+);
+
+---------------------------------
+ -- tables (3 ROWS EACH)--
+---------------------------------
+
+---AIRPORT
+INSERT INTO Airport VALUES
+('CAI','Cairo International Airport','Cairo','Egypt'),
+('DXB','Dubai International Airport','Dubai','UAE'),
+('JED','King Abdulaziz Airport','Jeddah','Saudi Arabia');
+
+----AIRPLANE TYPE
+INSERT INTO Airplane_Type VALUES
+('Boeing 737','Boeing',180),
+('Boeing 777','Boeing',350),
+('Airbus A320','Airbus',140);
+
+----AIRPLANE
+INSERT INTO Airplane VALUES
+(1,'Boeing 737',180,'CAI'),
+(2,'Boeing 777',350,'DXB'),
+(3,'Airbus A320',140,'CAI');
+
+-----FLIGHT LEG
+INSERT INTO Flight_Leg VALUES
+(101,'CAI','DXB','08:00','12:00'),
+(102,'DXB','JED','14:00','16:00'),
+(103,'CAI','JED','09:00','11:00');
+
+------LEG INSTANCE
+INSERT INTO Leg_Instance VALUES
+(101,'2025-06-10','12:05','08:05',120),
+(102,'2025-06-10','16:10','14:10',90),
+(103,'2025-06-11','11:05','09:05',200);
+
+-----FLIGHT
+INSERT INTO Flight VALUES
+('FL100','EgyptAir','Mon,Wed,Fri','No restrictions'),
+('FL200','Emirates','Tue,Thu,Sat','No pets allowed'),
+('FL300','Saudia','Mon-Fri','No liquids over 100ml');
+
+-----FLIGHT LEG ASSIGNMENT
+INSERT INTO Flight_Leg_Assignment VALUES
+('FL100',101,1),
+('FL200',102,1),
+('FL300',103,1);
+
+----FARE
+INSERT INTO Fare VALUES
+('F100',500.00,101),
+('F200',700.00,102),
+('F300',400.00,103);
+
+---RESERVATION
+INSERT INTO Reservation (passenger_name, phone_no, leg_no, flight_date) VALUES
+('Ali Ahmed','+201234567890',101,'2025-06-10'),
+('Fatima Saleh','+971501234567',102,'2025-06-10'),
+('Hassan Omar','+966501234567',103,'2025-06-11');
+
+---------------------------
+  ----- DQL TASKS------
+---------------------------
+
+-- 1. Display all flight leg records
+SELECT * FROM Airport; 
+SELECT * FROM Airplane_Type;
+SELECT * FROM Flight_Leg;
+SELECT * FROM Leg_Instance;
+SELECT * FROM Flight; 
+SELECT * FROM Reservation;
+SELECT * FROM Airplane;
+SELECT * FROM Fare; 
+SELECT * FROM Flight_Leg_Assignment; 
+
+-- 2. Flight leg ID, scheduled departure, and arrival time
+SELECT leg_no, scheduled_dep_time, scheduled_arr_time FROM Flight_Leg;
+
+-- 3. Airplane ID, type, and seat capacity
+SELECT airplane_id, type_name, total_seats FROM Airplane;
+
+-- 4. Flight leg ID and available seats as AvailableSeats
+SELECT leg_no, available_seats AS AvailableSeats FROM Leg_Instance;
+
+-- 5. Flight legs with available seats > 100
+SELECT leg_no FROM Leg_Instance WHERE available_seats > 100;
+
+-- 6. Airplane IDs with seat capacity above 300
+SELECT airplane_id FROM Airplane WHERE total_seats > 300;
+
+-- 7. Airport codes and names where city = 'Cairo'
+SELECT airport_code, name FROM Airport WHERE city='Cairo';
+
+-- 8. Flight legs scheduled on 2025-06-10
+SELECT * FROM Leg_Instance WHERE flight_date='2025-06-10';
+
+-- 9. Flight legs ordered by departure time
+SELECT * FROM Flight_Leg ORDER BY scheduled_dep_time;
+
+-- 10. Maximum, minimum, and average available seats
+SELECT MAX(available_seats) AS MaxSeats,
+       MIN(available_seats) AS MinSeats,
+       AVG(available_seats) AS AvgSeats
+FROM Leg_Instance;
+
+-- 11. Total number of flight legs
+SELECT COUNT(*) AS TotalFlightLegs FROM Flight_Leg;
+
+-- 12. Airplanes whose type contains 'Boeing'
+SELECT * FROM Airplane WHERE type_name LIKE '%Boeing%';
+
+-----------------------
+   --DML TASKS--
+-----------------------
+
+-- 13. Insert new flight leg CAI → DXB on 2025-06-10
+INSERT INTO Flight_Leg VALUES (104,'CAI','DXB','18:00','22:00');
+INSERT INTO Leg_Instance VALUES (104,'2025-06-10','22:05','18:05',150);
+
+-- 14. Insert a customer with NULL contact number
+INSERT INTO Reservation (passenger_name, phone_no, leg_no, flight_date)
+VALUES ('Sara Hassan', NULL, 101, '2025-06-10');
+
+-- 15. Reduce available seats of inserted flight leg by 5
+UPDATE Leg_Instance
+SET available_seats = available_seats - 5
+WHERE leg_no = 104 AND flight_date='2025-06-10';
+
+-- 16. Increase available seats by 10 for all domestic flights
+UPDATE LI
+SET available_seats = available_seats + 10
+FROM Leg_Instance LI
+JOIN Flight_Leg FL ON LI.leg_no = FL.leg_no
+WHERE FL.dep_airport_code = FL.arr_airport_code;
+
+-- 17. Update airplane seat capacity +20 where capacity < 150
+UPDATE Airplane
+SET total_seats = total_seats + 20
+WHERE total_seats < 150;
+
+-- 18. Delete canceled flight legs (example: available_seats = 0)
+DELETE FROM Leg_Instance
+WHERE available_seats = 0;
