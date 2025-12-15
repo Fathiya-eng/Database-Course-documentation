@@ -1,0 +1,294 @@
+
+CREATE DATABASE collageDB2;
+USE collageDB2;
+
+-- =============================================
+-- Table Creation
+-- =============================================
+
+-- Student Table
+CREATE TABLE Student (
+    StudID INT PRIMARY KEY,
+    Fname NVARCHAR(20),
+    Lname NVARCHAR(20),
+    DOB DATE,
+    HostelID INT,
+    EnrollmentDate DATE,
+    Status NVARCHAR(20),
+    Advisor NVARCHAR(50),
+    GPA DECIMAL(3,2)
+);
+
+-- StuPhone Table
+CREATE TABLE StuPhone (
+    StudID INT,
+    StuphoneNo INT,
+    PRIMARY KEY (StudID, StuphoneNo),
+    FOREIGN KEY (StudID) REFERENCES Student(StudID)
+);
+
+-- Faculty Table
+CREATE TABLE Faculty (
+    FID INT PRIMARY KEY IDENTITY(1,1),
+    Facname NVARCHAR(20),
+    Salary DECIMAL(10,2),
+    Fdepartment NVARCHAR(20) NOT NULL
+);
+
+-- FacPhone Table
+CREATE TABLE FacPhone (
+    FID INT,
+    FacphoneNo INT,
+    PRIMARY KEY (FID, FacphoneNo),
+    FOREIGN KEY (FID) REFERENCES Faculty(FID)
+);
+
+-- Student-Faculty Relationship
+CREATE TABLE studfaculty (
+    StudID INT,
+    FID INT,
+    PRIMARY KEY (StudID, FID),
+    FOREIGN KEY (StudID) REFERENCES Student(StudID),
+    FOREIGN KEY (FID) REFERENCES Faculty(FID)
+);
+
+-- Hostel Table
+CREATE TABLE Hostel (
+    HostelID INT PRIMARY KEY IDENTITY(1,1),
+    Hostelname NVARCHAR(50) NOT NULL,
+    City NVARCHAR(20) NOT NULL,
+    Hostelstate VARCHAR(50),
+    Hosteladdress VARCHAR(50),
+    PinCode CHAR(3),
+    NumberOfSeat INT
+);
+
+-- Subjects Table
+CREATE TABLE Subjects (
+    SubjectID INT PRIMARY KEY IDENTITY(1,1),
+    Subjectname NVARCHAR(50) NOT NULL,
+    FID INT,
+    FOREIGN KEY (FID) REFERENCES Faculty(FID)
+);
+
+-- Student-Subjects
+CREATE TABLE studSub (
+    StudID INT,
+    SubjectID INT,
+    PRIMARY KEY (StudID, SubjectID),
+    FOREIGN KEY (StudID) REFERENCES Student(StudID),
+    FOREIGN KEY (SubjectID) REFERENCES Subjects(SubjectID)
+);
+
+-- Exam Table
+CREATE TABLE Exam (
+    ExamCode INT PRIMARY KEY IDENTITY(1,1),
+    ExamDate DATE NOT NULL,
+    ExamTime TIME NOT NULL,
+    ExamRoom CHAR(6)
+);
+
+-- Student-Exam
+CREATE TABLE studExam (
+    StudID INT,
+    ExamCode INT,
+    PRIMARY KEY (StudID, ExamCode),
+    FOREIGN KEY (StudID) REFERENCES Student(StudID),
+    FOREIGN KEY (ExamCode) REFERENCES Exam(ExamCode)
+);
+
+-- Course Table
+CREATE TABLE Course (
+    CourseID INT PRIMARY KEY IDENTITY(1,1),
+    CourseName NVARCHAR(50) NOT NULL,
+    Duration INT
+);
+
+-- Student-Course
+CREATE TABLE studCourse (
+    StudID INT,
+    CourseID INT,
+    PRIMARY KEY (StudID, CourseID),
+    FOREIGN KEY (StudID) REFERENCES Student(StudID),
+    FOREIGN KEY (CourseID) REFERENCES Course(CourseID)
+);
+
+-- Department Table
+CREATE TABLE Department1 (
+    DepID INT PRIMARY KEY IDENTITY(1,1),
+    DepName NVARCHAR(50) NOT NULL,
+    StudID INT,
+    FOREIGN KEY (StudID) REFERENCES Student(StudID)
+);
+
+-- Adding Foreign Keys
+ALTER TABLE Student ADD CONSTRAINT FK_Student_Hostel FOREIGN KEY (HostelID) REFERENCES Hostel(HostelID);
+
+ALTER TABLE Faculty ADD DepID INT FOREIGN KEY REFERENCES Department1(DepID);
+ALTER TABLE Exam ADD DepID INT FOREIGN KEY REFERENCES Department1(DepID);
+ALTER TABLE Course ADD DepID INT FOREIGN KEY REFERENCES Department1(DepID);
+
+-- =============================================
+-- Insert Sample Data
+-- =============================================
+
+-- Hostels
+INSERT INTO Hostel (Hostelname, City, Hostelstate, Hosteladdress, PinCode, NumberOfSeat)
+VALUES 
+('Al Noor Hostel', 'Muscat', 'Muscat', 'Al Khuwair Street 12', '112', 120),
+('Al Aman Hostel', 'Sohar', 'Al Batinah', 'Sohar Industrial Area', '311', 80),
+('Green Valley Hostel', 'Salalah', 'Dhofar', 'Awqad North', '217', 100),
+('City Star Hostel', 'Nizwa', 'Ad Dakhiliyah', 'Near Nizwa Fort', '611', 60),
+('Palm Tree Hostel', 'Sur', 'Ash Sharqiyah', 'Sur Beach Road', '411', 90);
+
+-- Students
+INSERT INTO Student (StudID, Fname, Lname, DOB, HostelID, EnrollmentDate, Status, Advisor, GPA)
+VALUES
+(1, 'Aisha', 'AlHarthy', '2002-05-14', 2, '2021-08-15', 'Active', 'Dr. Ali', 3.4),
+(2, 'Salim', 'AlSaid', '2001-11-22', 4, '2020-09-01', 'Active', 'Dr. Sara', 3.6),
+(3, 'Fatima', 'AlBalushi', '2003-02-09', 3, '2022-01-10', 'Active', 'Dr. Omar', 3.2),
+(4, 'Khalid', 'AlRashdi', '2000-08-30', 5, '2019-07-20', 'Inactive', 'Dr. Laila', 2.8),
+(5, 'Noor', 'AlAmri', '2002-12-17', 1, '2021-05-12', 'Active', 'Dr. Nour', 3.0);
+
+-- Faculty
+INSERT INTO Faculty (Facname, Salary, Fdepartment) VALUES
+('Ali Hassan', 3000.00, 'Computer Science'),
+('Sara Ahmed', 3500.50, 'Mathematics'),
+('Omar Khalid', 3200.75, 'Physics'),
+('Laila Said', 4000.00, 'Chemistry'),
+('Nour Jamal', 3100.25, 'Biology');
+
+-- FacPhone
+INSERT INTO FacPhone (FID, FacphoneNo) VALUES
+(1, 901234567),
+(2, 902345678),
+(3, 903456789),
+(4, 904567890),
+(5, 905678901);
+
+-- Student-Faculty
+INSERT INTO studfaculty (StudID, FID) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
+
+-- Subjects
+INSERT INTO Subjects (Subjectname, FID) VALUES
+('Computer Programming', 1),
+('Calculus', 2),
+('Physics I', 3),
+('Organic Chemistry', 4),
+('Biology', 5);
+
+-- Student-Subjects
+INSERT INTO studSub (StudID, SubjectID) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
+
+-- Exam
+INSERT INTO Exam (ExamDate, ExamTime, ExamRoom) VALUES
+('2025-12-20', '09:00:00', 'RoomA'),
+('2025-12-21', '10:00:00', 'RoomB'),
+('2025-12-22', '11:00:00', 'RoomC'),
+('2025-12-23', '12:00:00', 'RoomD'),
+('2025-12-24', '13:00:00', 'RoomE');
+
+-- Student-Exam
+INSERT INTO studExam (StudID, ExamCode) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
+
+-- Course
+INSERT INTO Course (CourseName, Duration) VALUES
+('Computer Science', 4),
+('Mathematics', 3),
+('Physics', 4),
+('Chemistry', 4),
+('Biology', 3);
+
+-- Student-Course
+INSERT INTO studCourse (StudID, CourseID) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
+
+-- Department
+INSERT INTO Department1 (DepName, StudID) VALUES
+('Computer Science', 1),
+('Mathematics', 2),
+('Physics', 3),
+('Chemistry', 4),
+('Biology', 5);
+
+-- =============================================
+-- DQL Queries
+-- =============================================
+-- 1. All students
+SELECT * FROM Student;
+
+-- 2. Full name, enrollment date, status
+SELECT CONCAT(Fname,' ',Lname) AS FullName, EnrollmentDate, Status FROM Student;
+
+-- 3. Course title and credits
+SELECT CourseName, Duration AS Credits FROM Course;
+
+-- 4. Full name and GPA Score
+SELECT CONCAT(Fname,' ',Lname) AS FullName, GPA AS [GPA Score] FROM Student;
+
+-- 5. Students with GPA > 3.5
+SELECT StudID, CONCAT(Fname,' ',Lname) AS FullName FROM Student WHERE GPA > 3.5;
+
+-- 6. Students enrolled before 2022
+SELECT * FROM Student WHERE EnrollmentDate < '2022-01-01';
+
+-- 7. Students with GPA between 3.0 and 3.5
+SELECT * FROM Student WHERE GPA BETWEEN 3.0 AND 3.5;
+
+-- 8. Students ordered by GPA descending
+SELECT * FROM Student ORDER BY GPA DESC;
+
+-- 9. Max, Min, Avg GPA
+SELECT MAX(GPA) AS MaxGPA, MIN(GPA) AS MinGPA, AVG(GPA) AS AvgGPA FROM Student;
+
+-- 10. Total students
+SELECT COUNT(*) AS TotalStudents FROM Student;
+
+-- 11. Students whose names end with 'a'
+SELECT * FROM Student WHERE Fname LIKE '%a';
+
+-- 12. Students with NULL advisor
+SELECT * FROM Student WHERE Advisor IS NULL;
+
+-- 13. Students enrolled in 2021
+SELECT * FROM Student WHERE YEAR(EnrollmentDate) = 2021;
+
+-- =============================================
+-- DML Queries
+-- =============================================
+-- 14. Insert yourself
+INSERT INTO Student (StudID, Fname, Lname, EnrollmentDate, Status, GPA, Advisor)
+VALUES (300045,'YourFirstName','YourLastName','2025-01-01','Active',3.6,'Dr. Advisor');
+
+-- 15. Insert friend with GPA and Advisor NULL
+INSERT INTO Student (StudID, Fname, Lname, EnrollmentDate, Status, GPA, Advisor)
+VALUES (300046,'FriendFirstName','FriendLastName','2025-01-01','Active',NULL,NULL);
+
+-- 16. Increase your GPA by 0.2
+UPDATE Student SET GPA = GPA + 0.2 WHERE StudID = 300045;
+
+-- 17. Set GPA to 2.0 for students below 2.0
+UPDATE Student SET GPA = 2.0 WHERE GPA < 2.0;
+
+-- 18. Increase GPA by 0.1 for students enrolled before 2020
+UPDATE Student SET GPA = GPA + 0.1 WHERE EnrollmentDate < '2020-01-01';
+
