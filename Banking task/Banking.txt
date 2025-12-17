@@ -1,0 +1,212 @@
+CREATE DATABASE BankingSystem;
+USE BankingSystem;
+
+CREATE TABLE Branch (
+    BranchID INT IDENTITY(1,1) PRIMARY KEY,
+    Address NVARCHAR(150) NOT NULL,
+    Phone_Number NVARCHAR(20) NOT NULL
+);
+
+CREATE TABLE Customer (
+    CustomerID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Address NVARCHAR(150),
+    DOB DATE
+);
+
+CREATE TABLE CustomerPhone (
+    CustomerID INT NOT NULL,
+    Phone_Number NVARCHAR(20) NOT NULL,
+    PRIMARY KEY (CustomerID, Phone_Number),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID)
+);
+
+CREATE TABLE Employee (
+    EmployeeID INT IDENTITY(1,1) PRIMARY KEY,
+    BranchID INT NOT NULL,
+    Name NVARCHAR(100) NOT NULL,
+    Position NVARCHAR(50),
+    FOREIGN KEY (BranchID) REFERENCES Branch(BranchID)
+);
+
+CREATE TABLE Account (
+    Account_Number INT IDENTITY(100000,1) PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    Balance DECIMAL(12,2) DEFAULT 0,
+    Savings BIT DEFAULT 0,
+    Checking BIT DEFAULT 0,
+    Date_of_Creation DATE DEFAULT GETDATE(),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID)
+);
+
+CREATE TABLE Loan (
+    LoanID INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    EmployeeID INT NOT NULL,
+    Amount DECIMAL(12,2) NOT NULL,
+    Type NVARCHAR(50),
+    Issue_Date DATE DEFAULT GETDATE(),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID),
+    FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID)
+);
+
+CREATE TABLE [Transaction] (
+    TransactionID INT IDENTITY(1,1) PRIMARY KEY,
+    Account_Number INT NOT NULL,
+    Transaction_Date DATE DEFAULT GETDATE(),
+    Amount DECIMAL(12,2) NOT NULL,
+    Type NVARCHAR(20), -- withdrawal, deposit, transfer
+    Withdrawals BIT DEFAULT 0,
+    Deposits BIT DEFAULT 0,
+    Transfers BIT DEFAULT 0,
+    FOREIGN KEY (Account_Number) REFERENCES Account(Account_Number)
+);
+
+CREATE TABLE Customer_Employee (
+    CustomerID INT NOT NULL,
+    EmployeeID INT NOT NULL,
+    Action_Type NVARCHAR(50),
+    PRIMARY KEY (CustomerID, EmployeeID),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID),
+    FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID)
+);
+
+-----------------------------
+-----insserting--------------
+-----------------------------
+INSERT INTO Branch (Address, Phone_Number)
+VALUES 
+('Muscat Main Branch', '24111111'),
+('Salalah Branch', '23222222'),
+('Sohar Branch', '26233333');
+
+INSERT INTO Customer (Name, Address, DOB)
+VALUES
+('Fathiya Alfahdi', 'Muscat', '2000-01-01'),
+('Ahmed Ali', 'Salalah', '1998-05-10'),
+('Sara Mohammed', 'Sohar', '2001-09-15');
+
+INSERT INTO CustomerPhone (CustomerID, Phone_Number)
+VALUES
+(1, '91234567'),
+(2, '92345678'),
+(3, '93456789');
+
+INSERT INTO Employee (BranchID, Name, Position)
+VALUES
+(1, 'Ali Hassan', 'Manager'),
+(2, 'Mona Saleh', 'Loan Officer'),
+(3, 'Khalid Omar', 'Teller');
+
+INSERT INTO Account (CustomerID, Balance, Savings, Checking, Date_of_Creation)
+VALUES
+(1, 10000, 1, 0, '2023-03-15'),
+(2, 25000, 0, 1, '2022-07-20'),
+(3, 4000, 1, 1, '2023-11-05');
+
+INSERT INTO Loan (CustomerID, EmployeeID, Amount, Type, Issue_Date)
+VALUES
+(1, 2, 150000, 'Home Loan', '2010-06-01'),
+(2, 1, 80000, 'Car Loan', '2018-09-10'),
+(3, 3, 200000, 'Business Loan', '2005-02-20');
+
+INSERT INTO [Transaction]
+(Account_Number, Transaction_Date, Amount, Type, Withdrawals, Deposits, Transfers)
+VALUES
+(100000, '2024-01-05', 2000, 'Withdrawal', 1, 0, 0),
+(100001, '2024-02-10', 5000, 'Deposit', 0, 1, 0),
+(100002, '2024-03-12', 3000, 'Transfer', 0, 0, 1);
+
+INSERT INTO Customer_Employee (CustomerID, EmployeeID, Action_Type)
+VALUES
+(1, 2, 'Loan Approval'),
+(2, 1, 'Account Opening'),
+(3, 3, 'Transaction Assistance');
+
+-----------------------------
+----select-------------------
+-----------------------------
+SELECT * FROM Branch;
+SELECT * FROM Customer;
+SELECT * FROM CustomerPhone;
+SELECT * FROM Employee;
+SELECT * FROM Account;
+SELECT * FROM Loan;
+SELECT * FROM [Transaction];
+SELECT * FROM Customer_Employee;
+
+SELECT c.Name AS FullName,
+       cp.Phone_Number,
+       a.Date_of_Creation AS MembershipStartDate
+FROM Customer c
+LEFT JOIN CustomerPhone cp ON c.CustomerID = cp.CustomerID
+LEFT JOIN Account a ON c.CustomerID = a.CustomerID;
+
+SELECT LoanID, Amount, Type
+FROM Loan;
+
+SELECT Account_Number,
+       Balance * 0.05 AS AnnualInterest
+FROM Account;
+
+SELECT DISTINCT c.CustomerID, c.Name
+FROM Customer c
+JOIN Loan l ON c.CustomerID = l.CustomerID
+WHERE l.Amount > 100000;
+
+SELECT * FROM Account
+WHERE Balance > 20000;
+
+SELECT * FROM Account
+WHERE YEAR(Date_of_Creation) = 2023;
+
+SELECT * FROM Account
+ORDER BY Balance DESC;
+
+SELECT 
+    MAX(Balance) AS MaxBalance,
+    MIN(Balance) AS MinBalance,
+    AVG(Balance) AS AvgBalance
+FROM Account;
+
+SELECT COUNT(*) AS TotalCustomers
+FROM Customer;
+
+SELECT c.CustomerID, c.Name
+FROM Customer c
+LEFT JOIN CustomerPhone cp ON c.CustomerID = cp.CustomerID
+WHERE cp.Phone_Number IS NULL;
+
+SELECT *
+FROM Loan
+WHERE DATEDIFF(YEAR, Issue_Date, GETDATE()) > 10;
+
+INSERT INTO Customer (Name, Address, DOB)
+VALUES ('Fathiya Alfahdi', 'Oman', '2000-01-01');
+
+INSERT INTO Account (CustomerID, Balance, Savings)
+VALUES (SCOPE_IDENTITY(), 10000, 1);
+
+INSERT INTO Customer (Name, Address, DOB)
+VALUES ('Ahmed Ali', NULL, '1998-05-10');
+
+UPDATE Account
+SET Balance = Balance * 1.20
+WHERE CustomerID IN (
+    SELECT CustomerID
+    FROM Customer
+    WHERE Name = 'Fathiya Alfahdi'
+);
+
+
+UPDATE Account
+SET Balance = Balance * 1.05
+WHERE Balance < 5000;
+
+UPDATE CustomerPhone
+SET Phone_Number = 'Not Provided'
+WHERE Phone_Number IS NULL;
+
+DELETE FROM Account
+WHERE Balance = 0;
+
