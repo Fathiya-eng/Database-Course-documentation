@@ -1,0 +1,110 @@
+CREATE DATABASE HotelDB2;
+
+USE HotelDB2;
+
+
+CREATE TABLE Branch (
+    branch_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    location VARCHAR(150) NOT NULL
+);
+
+
+CREATE TABLE Customer (
+    C_ID INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(100)
+);
+
+
+CREATE TABLE Staff (
+    S_ID INT PRIMARY KEY,
+    branch_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    job_title VARCHAR(50),
+    salary DECIMAL(10,2),
+    FOREIGN KEY (branch_id) REFERENCES Branch(branch_id)
+);
+
+
+CREATE TABLE Room (
+    room_no INT,
+    branch_id INT,
+    type VARCHAR(50),
+    nightly_rate DECIMAL(10,2),
+    PRIMARY KEY (room_no, branch_id),
+    FOREIGN KEY (branch_id) REFERENCES Branch(branch_id)
+);
+
+
+CREATE TABLE Booking (
+    booking_id INT PRIMARY KEY IDENTITY(1,1),
+    S_ID INT,
+    C_ID INT,
+    check_in_date DATE NOT NULL,
+    check_out_date DATE NOT NULL,
+    FOREIGN KEY (S_ID) REFERENCES Staff(S_ID),
+    FOREIGN KEY (C_ID) REFERENCES Customer(C_ID)
+);
+
+
+CREATE TABLE Room_Booking (
+    booking_id INT,
+    branch_id INT,
+    room_no INT,
+    PRIMARY KEY (booking_id, branch_id, room_no),
+    FOREIGN KEY (booking_id) REFERENCES Booking(booking_id),
+    FOREIGN KEY (room_no, branch_id) REFERENCES Room(room_no, branch_id)
+);
+
+ALTER TABLE Booking
+ADD status VARCHAR(50) DEFAULT 'Pending';
+----------------------
+----tables------------
+--------------------
+-- Insert data into Branch
+INSERT INTO Branch (branch_id, name, location) VALUES
+(1, 'Downtown Inn', '123 Main St, City A'),
+(2, 'Lakeside Hotel', '456 Lake Rd, City B'),
+(3, 'Mountain View Resort', '789 Hilltop Blvd, City C');
+
+-- Insert data into Customer
+INSERT INTO Customer (C_ID, name, phone, email) VALUES
+(1, 'Alice Johnson', '555-1234', 'alice@example.com'),
+(2, 'Bob Smith', '555-5678', 'bob@example.com'),
+(3, 'Charlie Lee', '555-9012', 'charlie@example.com');
+
+-- Insert data into Staff
+INSERT INTO Staff (S_ID, branch_id, name, job_title, salary) VALUES
+(1, 1, 'Emma Brown', 'Manager', 4500.00),
+(2, 2, 'David Wilson', 'Receptionist', 3000.00),
+(3, 3, 'Sophia Davis', 'Housekeeping', 2800.00);
+
+-- Insert data into Room
+INSERT INTO Room (room_no, branch_id, type, nightly_rate) VALUES
+(101, 1, 'Single', 100.00),
+(102, 1, 'Double', 150.00),
+(201, 2, 'Suite', 250.00);
+
+-- Insert data into Booking
+INSERT INTO Booking (S_ID, C_ID, check_in_date, check_out_date, Status) VALUES
+(1, 1, '2025-12-25', '2025-12-28', 'Confirmed'),
+(2, 2, '2025-12-26', '2025-12-27', 'Pending'),
+(3, 3, '2025-12-27', '2025-12-30', 'Completed');
+
+-- Insert data into Room_Booking
+INSERT INTO Room_Booking (booking_id, branch_id, room_no) VALUES
+(1, 1, 101),
+(2, 1, 102),
+(3, 2, 201);
+
+------------------------
+-----Select-------------
+------------------------
+SELECT * FROM Branch;
+SELECT * FROM Customer;
+SELECT * FROM Staff;
+SELECT * FROM Room;
+SELECT * FROM Booking;
+SELECT * FROM Room_Booking;
